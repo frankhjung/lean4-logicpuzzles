@@ -1,0 +1,11 @@
+build/
+docbuild/.lake
+docbuild/.lake/**
+.elan/
+.lake/
+/.lake
+lake-packages/
+*.olean
+*.olean.lock
+*.trace
+.vscode/

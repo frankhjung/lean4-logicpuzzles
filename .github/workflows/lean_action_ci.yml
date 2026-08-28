@@ -1,0 +1,35 @@
+---
+name: lean-action-ci
+
+on:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "*"
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build, test and lint the project
+        id: build-lean
+        uses: leanprover/lean-action@v1
+
+      - name: Run executable smoke-tests
+        run: |
+          lake exe BreakfastTimeExe
