@@ -1,4 +1,5 @@
 import BreakfastTime.Perm
+import BreakfastTime.Search
 import BreakfastTime.Meta
 
 /-!
@@ -49,9 +50,10 @@ they took to go?
 
 -/
 
-namespace BreakfastTime.BreakfastTime
+namespace BreakfastTime.Solve
 
 open BreakfastTime.Perm (permutations zipWith4)
+open BreakfastTime.Search (choose choosePerm checkpoint)
 open BreakfastTime.Meta
 
 /-- Friend names. -/
@@ -110,12 +112,12 @@ def findByDrink (sol : List Assignment) (drink : Drink) : Option Assignment :=
 def findByToGo (sol : List Assignment) (toGo : ToGo) : Option Assignment :=
   sol.find? (fun a => a.toGo == toGo)
 
-/-- All candidate assignments for the puzzle. -/
-def candidates : List (List Assignment) :=
-  (permutations drinks).flatMap fun ds =>
-  (permutations meals).flatMap fun ms =>
-  (permutations togos).map fun ts =>
-  zipWith4 Assignment.mk names ds ms ts
+/-- All candidate assignments for the puzzle, generated monadically. -/
+def candidates : List (List Assignment) := do
+  let ds ← choosePerm drinks
+  let ms ← choosePerm meals
+  let ts ← choosePerm togos
+  pure (zipWith4 Assignment.mk names ds ms ts)
 
 /-- 1. Samantha had cereal but not a Latte. -/
 def clue1 (sol : List Assignment) : Bool :=
@@ -176,8 +178,31 @@ def clues : List (List Assignment → Bool) :=
 def isValid (sol : List Assignment) : Bool :=
   clues.all fun clue => clue sol
 
-/-- All valid solutions for the puzzle. -/
-def answers : List (List Assignment) :=
-  candidates.filter isValid
+/-- Check if partial (Name × Drink × Meal) assignment satisfies Clues 3 & 4. -/
+def validPartialDrinksMeals (ds : List Drink) (ms : List Meal) : Bool :=
+  let pairs := names.zip (ds.zip ms)
+  let c3 := pairs.any fun (n, d, m) =>
+    m == Meal.Omelet && d == Drink.Apple && n != Name.Jenny
+  let jackieDrink := pairs.find? (·.1 == Name.Jackie) |>.map (·.2.1)
+  let toastDrink := pairs.find? (·.2.2 == Meal.Toast) |>.map (·.2.1)
+  let c4 := match jackieDrink, toastDrink with
+    | some d1, some d2 =>
+        (d1 == Drink.Orange && d2 == Drink.Tea) ||
+        (d1 == Drink.Tea && d2 == Drink.Orange)
+    | _, _ => false
+  c3 && c4
 
-end BreakfastTime.BreakfastTime
+/--
+Find all valid solutions using the monadic search DSL with early branch
+pruning on intermediate attribute combinations.
+-/
+def answers : List (List Assignment) := do
+  let ds ← choosePerm drinks
+  let ms ← choosePerm meals
+  guard (validPartialDrinksMeals ds ms)
+  let ts ← choosePerm togos
+  let sol := zipWith4 Assignment.mk names ds ms ts
+  guard (isValid sol)
+  pure sol
+
+end BreakfastTime.Solve

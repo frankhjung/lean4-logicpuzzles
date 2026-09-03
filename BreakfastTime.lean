@@ -1,6 +1,7 @@
 import BreakfastTime.Perm
+import BreakfastTime.Search
 import BreakfastTime.Meta
-import BreakfastTime.BreakfastTime
+import BreakfastTime.Solve
 import BreakfastTime.Display
 
 /-!

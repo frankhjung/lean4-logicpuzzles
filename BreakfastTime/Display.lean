@@ -1,4 +1,4 @@
-import BreakfastTime.BreakfastTime
+import BreakfastTime.Solve
 
 /-!
 # Breakfast Time Display Utilities
@@ -9,7 +9,7 @@ core solver purely functional.
 
 namespace BreakfastTime.Display
 
-open BreakfastTime.BreakfastTime (Assignment answers)
+open BreakfastTime.Solve (Assignment answers)
 
 /-- Convert a derived `Repr` format to a clean string, stripping module names. -/
 def formatRepr {α : Type} [Repr α] (x : α) : String :=

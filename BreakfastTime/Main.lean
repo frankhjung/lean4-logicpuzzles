@@ -1,4 +1,4 @@
-import BreakfastTime.BreakfastTime
+import BreakfastTime.Solve
 import BreakfastTime.Display
 
 /-- Run the BreakfastTime solver and print the unique solution. -/
