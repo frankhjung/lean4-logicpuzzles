@@ -1,5 +1,7 @@
 import BreakfastTime.Perm
+import BreakfastTime.Meta
 import BreakfastTime.BreakfastTime
+import BreakfastTime.Display
 
 /-!
 # Breakfast Time logic puzzles

@@ -1,4 +1,5 @@
 import BreakfastTime.Perm
+import BreakfastTime.Meta
 
 /-!
 # Breakfast Time logic puzzle
@@ -51,6 +52,7 @@ they took to go?
 namespace BreakfastTime.BreakfastTime
 
 open BreakfastTime.Perm (permutations zipWith4)
+open BreakfastTime.Meta
 
 /-- Friend names. -/
 inductive Name | Jenny | Jackie | Samantha | Judy
@@ -68,42 +70,6 @@ inductive Meal | Toast | Omelet | Pancakes | Cereal
 inductive ToGo | Lemonade | Water | Coffee | Latte
   deriving BEq, DecidableEq, Repr, Inhabited
 
-/-- Convert `Name` values to strings for reporting. -/
-def Name.toString : Name → String
-  | Jenny    => "Jenny"
-  | Jackie   => "Jackie"
-  | Samantha => "Samantha"
-  | Judy     => "Judy"
-
-instance : ToString Name := ⟨Name.toString⟩
-
-/-- Convert `Drink` values to strings for reporting. -/
-def Drink.toString : Drink → String
-  | Orange => "Orange"
-  | Apple  => "Apple"
-  | Tea    => "Tea"
-  | Milk   => "Milk"
-
-instance : ToString Drink := ⟨Drink.toString⟩
-
-/-- Convert `Meal` values to strings for reporting. -/
-def Meal.toString : Meal → String
-  | Toast    => "Toast"
-  | Omelet   => "Omelet"
-  | Pancakes => "Pancakes"
-  | Cereal   => "Cereal"
-
-instance : ToString Meal := ⟨Meal.toString⟩
-
-/-- Convert `ToGo` values to strings for reporting. -/
-def ToGo.toString : ToGo → String
-  | Lemonade => "Lemonade"
-  | Water    => "Water"
-  | Coffee   => "Coffee"
-  | Latte    => "Latte"
-
-instance : ToString ToGo := ⟨ToGo.toString⟩
-
 /-- A single person's assignment: Name, Drink, Meal, ToGo. -/
 structure Assignment where
   /-- The person's name. -/
@@ -117,16 +83,16 @@ structure Assignment where
   deriving BEq, DecidableEq, Repr, Inhabited
 
 /-- All possible names in fixed order. -/
-def names : List Name := [Name.Jenny, Name.Jackie, Name.Samantha, Name.Judy]
+def names : List Name := allConstructors% Name
 
 /-- All possible drinks. -/
-def drinks : List Drink := [Drink.Orange, Drink.Apple, Drink.Tea, Drink.Milk]
+def drinks : List Drink := allConstructors% Drink
 
 /-- All possible meals. -/
-def meals : List Meal := [Meal.Toast, Meal.Omelet, Meal.Pancakes, Meal.Cereal]
+def meals : List Meal := allConstructors% Meal
 
 /-- All possible to-go drinks. -/
-def togos : List ToGo := [ToGo.Lemonade, ToGo.Water, ToGo.Coffee, ToGo.Latte]
+def togos : List ToGo := allConstructors% ToGo
 
 /-- Find the assignment for a given name. -/
 def findByName (sol : List Assignment) (name : Name) : Option Assignment :=
@@ -213,30 +179,5 @@ def isValid (sol : List Assignment) : Bool :=
 /-- All valid solutions for the puzzle. -/
 def answers : List (List Assignment) :=
   candidates.filter isValid
-
-/-- Pad a string on the right to a given width. -/
-def padRight (s : String) (len : Nat) : String :=
-  if s.length >= len then s else s.pushn ' ' (len - s.length)
-
-/-- Format an assignment as a Markdown-style table row. -/
-def formatAssignment (a : Assignment) : String :=
-  let ns := padRight (toString a.name) 8
-  let ds := padRight (toString a.drink) 8
-  let ms := padRight (toString a.meal) 8
-  let ts := padRight (toString a.toGo) 8
-  s!"| {ns} | {ds} | {ms} | {ts} |"
-
-/-- Print the unique solution as a text table. -/
-def printSolution : IO Unit := do
-  match answers with
-  | [sol] =>
-    IO.println "| Name     | Drink    | Meal     | To Go    |"
-    IO.println "|----------|----------|----------|----------|"
-    for a in sol do
-      IO.println (formatAssignment a)
-  | [] =>
-    IO.println "No valid solution found."
-  | _ :: _ =>
-    IO.println "More than one valid solution found."
 
 end BreakfastTime.BreakfastTime
