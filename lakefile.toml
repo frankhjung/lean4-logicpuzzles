@@ -1,6 +1,7 @@
 name = "LogicPuzzles"
 version = "0.1.0"
 defaultTargets = ["BreakfastTime", "Test"]
+testDriver = "TestExe"
 lintDriver = "batteries/runLinter"
 fixedToolchain = true
 
@@ -15,6 +16,10 @@ root = "BreakfastTime.Main"
 [[lean_lib]]
 name = "Test"
 globs = ["Test", "Test.+"]
+
+[[lean_exe]]
+name = "TestExe"
+root = "Test"
 
 [[require]]
 name = "batteries"

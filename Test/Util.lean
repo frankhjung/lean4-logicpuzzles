@@ -31,4 +31,12 @@ def summary (st : IO.Ref State) : IO Unit := do
   IO.println ""
   IO.println s!"[TEST] Summary: {s.total} tests, {s.fails} failures"
 
+/-- A named puzzle test suite. -/
+structure Suite where
+  /-- Identifier for the test suite (e.g. "BreakfastTime"). -/
+  name : String
+  /-- Test runner function populating the shared state. -/
+  run : IO.Ref State → IO Unit
+
 end Test.Util
+

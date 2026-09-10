@@ -68,4 +68,13 @@ def runTests (st : IO.Ref State) : IO Unit := do
   | _ =>
     IO.println "[FAIL] Expected exactly one solution"
 
+/-- Run BreakfastTime tests standalone and return an exit code. -/
+def run : IO UInt32 := do
+  let st ← Test.Util.mkState
+  runTests st
+  Test.Util.summary st
+  let s ← st.get
+  return if s.fails > 0 then 1 else 0
+
 end BreakfastTime.Test
+

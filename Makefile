@@ -47,15 +47,16 @@ build: ## Build a specific module: make build MODULE=BreakfastTime
 build-all: ## Build every puzzle module
 	@for m in $(MODULES); do $(LAKE) build $$m; done
 
-lint: ## Run the linter
+lint: build-all ## Run the linter
 	@$(LAKE) check-lint
 	@$(LAKE) lint
 
 test: ## Test a specific module: make test MODULE=BreakfastTime
-	@$(LAKE) build $(MODULE) && $(LAKE) env lean $(MODULE)/Test.lean
+	@$(LAKE) test -- $(MODULE)
 
 test-all: ## Test every puzzle module
-	@for m in $(MODULES); do $(LAKE) build $$m && $(LAKE) env lean $$m/Test.lean; done
+	@$(LAKE) test
+
 
 run: ## Run a specific module executable: make run MODULE=BreakfastTime
 	@$(LAKE) build $(MODULE)Exe && $(LAKE) exe $(MODULE)Exe
