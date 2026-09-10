@@ -2,6 +2,7 @@ name = "LogicPuzzles"
 version = "0.1.0"
 defaultTargets = ["BreakfastTime", "Test"]
 lintDriver = "batteries/runLinter"
+fixedToolchain = true
 
 [[lean_lib]]
 name = "BreakfastTime"
