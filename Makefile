@@ -22,14 +22,14 @@ endif
 LAKE	:= LD_LIBRARY_PATH="$(LEAN_PREFIX)/lib" lake --keep-toolchain
 RM	:= rm -rf
 
-MODULES := BreakfastTime
+MODULES := BreakfastTime Test
 MODULE ?= $(firstword $(MODULES))
 
-.PHONY: all default build build-all lint test test-all run run-all clean help
+.PHONY: all default build build-all lint test run run-all clean help
 
-default: build-all lint test-all run-all ## Default goal: build, lint, test, and run all puzzle modules
+default: build-all lint run-all ## Default goal: build, lint, test, and run all puzzle modules
 
-all: build-all test-all ## Build and test all puzzle modules
+all: build-all run-all ## Build and test all puzzle modules
 
 help: ## Show this help message
 	@echo ""
@@ -51,12 +51,8 @@ lint: build-all ## Run the linter
 	@$(LAKE) check-lint
 	@$(LAKE) lint
 
-test: ## Test a specific module: make test MODULE=BreakfastTime
-	@$(LAKE) test -- $(MODULE)
-
-test-all: ## Test every puzzle module
+test: ## Run the LSpec test suite
 	@$(LAKE) test
-
 
 run: ## Run a specific module executable: make run MODULE=BreakfastTime
 	@$(LAKE) build $(MODULE)Exe && $(LAKE) exe $(MODULE)Exe

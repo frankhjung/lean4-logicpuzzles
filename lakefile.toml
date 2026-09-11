@@ -15,7 +15,6 @@ root = "BreakfastTime.Main"
 
 [[lean_lib]]
 name = "Test"
-globs = ["Test", "Test.+"]
 
 [[lean_exe]]
 name = "TestExe"
@@ -25,6 +24,11 @@ root = "Test"
 name = "batteries"
 git = "https://github.com/leanprover-community/batteries"
 rev = "v4.32.0"
+
+[[require]]
+name = "LSpec"
+git = "https://github.com/lurk-lab/LSpec"
+rev = "main"
 
 [[require]]
 name = "Mathlib"

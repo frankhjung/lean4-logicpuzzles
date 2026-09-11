@@ -1,40 +1,33 @@
-/-!
-# Permutation combinators
+import BreakfastTime.Combinators
 
-Reusable list permutation helpers used across logic puzzle solvers.
+/-!
+# Permutation combinators (Legacy Shim)
+
+Re-exports combinators from `BreakfastTime.Combinators` for backward
+compatibility.
 -/
 
 namespace BreakfastTime.Perm
 
-/--
-Return all possible ways to insert an element `x` into a list `xs`.
--/
+open BreakfastTime.Combinators
+
+/-- All possible ways to insert an element into a list. -/
 @[inline]
-def insertions (x : α) : List α → List (List α)
-  | [] => [[x]]
-  | y :: ys => (x :: y :: ys) :: (insertions x ys).map (y :: ·)
+def insertions : α → List α → List (List α) :=
+  BreakfastTime.Combinators.insertions
 
-@[simp] theorem length_insertions (x : α) (xs : List α) :
-    (insertions x xs).length = xs.length + 1 := by
-  induction xs with
-  | nil => rfl
-  | cons y ys ih => simp [insertions, ih]
-
-/--
-Return all permutations of a list `xs`.
--/
-def permutations : List α → List (List α)
-  | [] => [[]]
-  | x :: xs => (permutations xs).flatMap (insertions x)
+/-- All permutations of a list. -/
+@[inline]
+def permutations : List α → List (List α) :=
+  BreakfastTime.Combinators.permutations
 
 /--
 Zip four lists together with a function `f`.
-Truncates to the length of the shortest input list.
+Delegates to the applicative `<⊛>` implementation.
 -/
 @[inline]
-def zipWith4 (f : α → β → γ → δ → ε) :
-    List α → List β → List γ → List δ → List ε
-  | a :: as, b :: bs, c :: cs, d :: ds => f a b c d :: zipWith4 f as bs cs ds
-  | _, _, _, _                         => []
+def zipWith4 (f : α → β → γ → δ → ε)
+    (as : List α) (bs : List β) (cs : List γ) (ds : List δ) : List ε :=
+  BreakfastTime.Combinators.zipWith4 f as bs cs ds
 
 end BreakfastTime.Perm

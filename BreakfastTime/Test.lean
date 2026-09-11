@@ -1,62 +1,76 @@
-import Test.Util
+import LSpec
+import BreakfastTime.Combinators
 import BreakfastTime.Perm
 import BreakfastTime.Search
 import BreakfastTime.Solve
 
 namespace BreakfastTime.Test
 
-open Test.Util
-open BreakfastTime.Perm
+open LSpec
+open BreakfastTime.Combinators
 open BreakfastTime.Search
 open BreakfastTime.Solve
 
 /-- Test `permutations` behaviour. -/
-def testPermutations (st : IO.Ref State) : IO Unit := do
+def testPermutations : TestSeq :=
   let perms123 := permutations [1, 2, 3]
-  assertEqual st perms123.length 6 "permutations [1,2,3] length"
   let allPresent := perms123.all (fun p => p.contains 1 && p.contains 2 && p.contains 3)
-  assertEqual st allPresent true "permutations completeness"
+  test "permutations [1,2,3] length" (perms123.length == 6) $
+  test "permutations completeness" (allPresent == true)
+
+/-- Test applicative `<⊛>` zip behaviour across varying arities and lengths. -/
+def testZipApply : TestSeq :=
+  let z2 := [Nat.add 1, Nat.add 2] <⊛> [10, 20]
+  let z3 := [1, 2].map (fun a b c => a + b + c) <⊛> [10, 20] <⊛> [100, 200]
+  let z5 := [1, 2].map (fun a b c d e => a + b + c + d + e)
+    <⊛> [10, 20] <⊛> [100, 200] <⊛> [1000, 2000] <⊛> [10000, 20000]
+  let zTruncLeft := [1, 2, 3].map (· + ·) <⊛> [10, 20]
+  let zTruncRight := [1, 2].map (· + ·) <⊛> [10, 20, 30]
+  test "zipApply binary application" (z2 == [11, 22]) $
+  test "zipApply ternary application" (z3 == [111, 222]) $
+  test "zipApply 5-ary application" (z5 == [11111, 22222]) $
+  test "zipApply truncates when left is longer" (zTruncLeft == [11, 22]) $
+  test "zipApply truncates when right is longer" (zTruncRight == [11, 22])
 
 /-- Test `zipWith4` behaviour. -/
-def testZipWith4 (st : IO.Ref State) : IO Unit := do
+def testZipWith4 : TestSeq :=
   let z4 := zipWith4 (fun a b c d => a + b + c + d) [1,2] [10,20] [100,200] [1000,2000,3000]
-  assertEqual st z4 [1111, 2222] "zipWith4 basic behaviour"
+  test "zipWith4 basic behaviour" (z4 == [1111, 2222])
 
 /-- Test `choose` behaviour. -/
-def testChoose (st : IO.Ref State) : IO Unit := do
+def testChoose : TestSeq :=
   let chosen := choose [10, 20, 30]
-  assertEqual st chosen [10, 20, 30] "choose preserves list"
+  test "choose preserves list" (chosen == [10, 20, 30])
 
 /-- Test `choosePerm` behaviour. -/
-def testChoosePerm (st : IO.Ref State) : IO Unit := do
+def testChoosePerm : TestSeq :=
   let perm2 := choosePerm [1, 2]
-  assertEqual st perm2.length 2 "choosePerm [1, 2] length"
+  test "choosePerm [1, 2] length" (perm2.length == 2)
 
 /-- Test `guard` behaviour. -/
-def testGuard (st : IO.Ref State) : IO Unit := do
+def testGuard : TestSeq :=
   let guardTrue := (guard true : List Unit).length
-  assertEqual st guardTrue 1 "guard true yields unit"
   let guardFalse := (guard false : List Unit).length
-  assertEqual st guardFalse 0 "guard false yields empty"
+  test "guard true yields unit" (guardTrue == 1) $
+  test "guard false yields empty" (guardFalse == 0)
 
 /-- Test `checkpoint` behaviour. -/
-def testCheckpoint (st : IO.Ref State) : IO Unit := do
+def testCheckpoint : TestSeq :=
   let cpPass := checkpoint (· > 10) 15
-  assertEqual st cpPass [15] "checkpoint pass"
   let cpFail := checkpoint (· > 10) 5
-  assertEqual st cpFail [] "checkpoint fail"
+  test "checkpoint pass" (cpPass == [15]) $
+  test "checkpoint fail" (cpFail == ([] : List Nat))
 
 /-- Test monadic search pipeline. -/
-def testMonadicSearch (st : IO.Ref State) : IO Unit := do
+def testMonadicSearch : TestSeq :=
   let monadicSearch : List Nat := do
     let x ← choose [1, 2, 3, 4]
     guard (x % 2 == 0)
     pure (x * 10)
-  assertEqual st monadicSearch [20, 40] "monadic search pipeline"
+  test "monadic search pipeline" (monadicSearch == [20, 40])
 
 /-- Test the BreakfastTime puzzle solver. -/
-def testSolve (st : IO.Ref State) : IO Unit := do
-  assertEqual st answers.length 1 "puzzle has exactly 1 solution"
+def testSolve : TestSeq :=
   match answers with
   | [sol] =>
     let jenny := sol.find? (·.name == Name.Jenny)
@@ -69,32 +83,19 @@ def testSolve (st : IO.Ref State) : IO Unit := do
     let samanthaExpected := some ⟨Name.Samantha, Drink.Milk, Meal.Cereal, ToGo.Water⟩
     let judyExpected := some ⟨Name.Judy, Drink.Apple, Meal.Omelet, ToGo.Lemonade⟩
 
-    assertEqual st (jenny == jennyExpected) true "Jenny's assignment"
-    assertEqual st (jackie == jackieExpected) true "Jackie's assignment"
-    assertEqual st (samantha == samanthaExpected) true "Samantha's assignment"
-    assertEqual st (judy == judyExpected) true "Judy's assignment"
+    test "puzzle has exactly 1 solution" (answers.length == 1) $
+    test "Jenny's assignment" (jenny == jennyExpected) $
+    test "Jackie's assignment" (jackie == jackieExpected) $
+    test "Samantha's assignment" (samantha == samanthaExpected) $
+    test "Judy's assignment" (judy == judyExpected)
   | _ =>
-    IO.println "[FAIL] Expected exactly one solution"
+    test "puzzle has exactly 1 solution" false
 
-/-- Run BreakfastTime puzzle tests. -/
-def runTests (st : IO.Ref State) : IO Unit := do
-  IO.println "\n[TEST] Testing BreakfastTime.Solve"
-  testPermutations st
-  testZipWith4 st
-  testChoose st
-  testChoosePerm st
-  testGuard st
-  testCheckpoint st
-  testMonadicSearch st
-  testSolve st
-
-/-- Run BreakfastTime tests standalone and return an exit code. -/
-def run : IO UInt32 := do
-  let st ← Test.Util.mkState
-  runTests st
-  Test.Util.summary st
-  let s ← st.get
-  return if s.fails > 0 then 1 else 0
+/-- All BreakfastTime puzzle tests. -/
+def tests : TestSeq :=
+  testPermutations ++ testZipApply ++ testZipWith4 ++ testChoose ++
+  testChoosePerm ++ testGuard ++ testCheckpoint ++ testMonadicSearch ++
+  testSolve
 
 end BreakfastTime.Test
 

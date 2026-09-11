@@ -1,5 +1,4 @@
-import BreakfastTime.Perm
-import BreakfastTime.Search
+import BreakfastTime.Combinators
 import BreakfastTime.Meta
 
 /-!
@@ -52,8 +51,7 @@ they took to go?
 
 namespace BreakfastTime.Solve
 
-open BreakfastTime.Perm (permutations zipWith4)
-open BreakfastTime.Search (choose choosePerm checkpoint)
+open BreakfastTime.Combinators
 open BreakfastTime.Meta
 
 /-- Friend names. -/
@@ -114,10 +112,10 @@ def findByToGo (sol : List Assignment) (toGo : ToGo) : Option Assignment :=
 
 /-- All candidate assignments for the puzzle, generated monadically. -/
 def candidates : List (List Assignment) := do
-  let ds ← choosePerm drinks
-  let ms ← choosePerm meals
-  let ts ← choosePerm togos
-  pure (zipWith4 Assignment.mk names ds ms ts)
+  let ds ← permutations drinks
+  let ms ← permutations meals
+  let ts ← permutations togos
+  pure (names.map Assignment.mk <⊛> ds <⊛> ms <⊛> ts)
 
 /-- 1. Samantha had cereal but not a Latte. -/
 def clue1 (sol : List Assignment) : Bool :=
@@ -197,11 +195,11 @@ Find all valid solutions using the monadic search DSL with early branch
 pruning on intermediate attribute combinations.
 -/
 def answers : List (List Assignment) := do
-  let ds ← choosePerm drinks
-  let ms ← choosePerm meals
+  let ds ← permutations drinks
+  let ms ← permutations meals
   guard (validPartialDrinksMeals ds ms)
-  let ts ← choosePerm togos
-  let sol := zipWith4 Assignment.mk names ds ms ts
+  let ts ← permutations togos
+  let sol := names.map Assignment.mk <⊛> ds <⊛> ms <⊛> ts
   guard (isValid sol)
   pure sol
 

@@ -1,3 +1,4 @@
+import BreakfastTime.Combinators
 import BreakfastTime.Perm
 import BreakfastTime.Search
 import BreakfastTime.Meta
