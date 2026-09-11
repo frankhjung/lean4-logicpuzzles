@@ -11,20 +11,16 @@ namespace BreakfastTime.Display
 
 open BreakfastTime.Solve (Assignment answers)
 
-/-- Convert a derived `Repr` format to a clean string, stripping module names. -/
-def formatRepr {α : Type} [Repr α] (x : α) : String :=
-  (reprStr x).splitOn "." |>.getLast!
-
 /-- Pad a string on the right to a given width. -/
 def padRight (s : String) (len : Nat) : String :=
   if s.length >= len then s else s.pushn ' ' (len - s.length)
 
 /-- Format an assignment as a Markdown-style table row. -/
 def formatAssignment (a : Assignment) : String :=
-  let ns := padRight (formatRepr a.name) 8
-  let ds := padRight (formatRepr a.drink) 8
-  let ms := padRight (formatRepr a.meal) 8
-  let ts := padRight (formatRepr a.toGo) 8
+  let ns := padRight (toString a.name) 8
+  let ds := padRight (toString a.drink) 8
+  let ms := padRight (toString a.meal) 8
+  let ts := padRight (toString a.toGo) 8
   s!"| {ns} | {ds} | {ms} | {ts} |"
 
 /-- Print the unique solution as a text table. -/

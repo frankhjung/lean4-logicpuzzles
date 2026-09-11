@@ -16,9 +16,11 @@ Each puzzle is implemented as a separate module with its own directory:
 
 - `BreakfastTime/` — the Breakfast Time puzzle module:
   - `Solve.lean` — puzzle domain encoding, clues, and solver.
-  - `Search.lean` — reusable monadic search combinators (`choose`,
-    `choosePerm`, `checkpoint`) with early branch pruning.
-  - `Perm.lean` — permutation and `zipWith4` combinators.
+  - `Combinators.lean` — standardised list permutations and `zipWith4`
+    combinators delegating to Mathlib and Batteries.
+  - `Search.lean` — reusable monadic search combinators with early branch
+    pruning.
+  - `Perm.lean` — permutation and `zipWith4` combinators (legacy shim).
   - `Meta.lean` — compile-time constructor enumeration macro
     (`allConstructors%`).
   - `Display.lean` — solution table formatting and IO.
