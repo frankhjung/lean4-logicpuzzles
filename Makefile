@@ -24,7 +24,13 @@ RM	:= rm -rf
 
 MODULES := BreakfastTime Test
 MODULE ?= $(firstword $(MODULES))
-LINT_THREADS ?= 1
+# Detect available CPUs — nproc (Linux) or sysctl (macOS).
+# Override: make lint LINT_THREADS=2
+NPROCS := $(shell nproc 2>/dev/null \
+  || sysctl -n hw.ncpu 2>/dev/null \
+  || getconf _NPROCESSORS_ONLN 2>/dev/null \
+  || echo 1)
+LINT_THREADS ?= $(NPROCS)
 LINT_MODULES ?= $(shell find $(MODULES:%=%.lean) $(MODULES) -type f \
 	-name '*.lean' 2>/dev/null | sed -e 's/\.lean$$//' -e 's|/|.|g' | sort -u)
 
@@ -43,6 +49,10 @@ help: ## Show this help message
 	/^[a-zA-Z_-]+:.*?##/ \
 	{ printf "  \033[36m%-10s\033[0m %s\n", $$1, $$2 }' \
 	$(MAKEFILE_LIST)
+	@echo ""
+	@echo "Settings:"
+	@printf "  %-14s %s\n" "NPROCS" "$(NPROCS)"
+	@printf "  %-14s %s\n" "LINT_THREADS" "$(LINT_THREADS)"
 
 build: ## Build a specific module: make build MODULE=BreakfastTime
 	@$(LAKE) build $(MODULE)
