@@ -1,6 +1,5 @@
 .DEFAULT_GOAL := default
 
-CD	:= cd
 REQUIRED_LEAN_VERSION	:= 4.32.0
 REQUIRED_TOOLCHAIN	:= leanprover/lean4:v$(REQUIRED_LEAN_VERSION)
 
@@ -10,13 +9,10 @@ $(error lean-toolchain specifies '$(TOOLCHAIN)' but expected '$(REQUIRED_TOOLCHA
 endif
 
 LEAN_PREFIX := $(shell lean --print-prefix 2>/dev/null)
-ifeq ($(LEAN_PREFIX),)
-$(error Lean not found. Ensure Lean 4 is installed and available on your PATH.)
-endif
 
 LEAN_VERSION		:= $(shell lean --version 2>/dev/null | sed -n 's/.*version \([0-9.]*\).*/\1/p')
 ifneq ($(LEAN_VERSION),$(REQUIRED_LEAN_VERSION))
-$(error Active Lean version is '$(LEAN_VERSION)', but $(REQUIRED_LEAN_VERSION) is required.)
+$(error Active Lean version is '$(LEAN_VERSION)', expected '$(REQUIRED_LEAN_VERSION)'. Is Lean installed?)
 endif
 
 LAKE	:= LD_LIBRARY_PATH="$(LEAN_PREFIX)/lib" lake --keep-toolchain
@@ -36,7 +32,7 @@ LINT_MODULES ?= $(shell find $(MODULES:%=%.lean) $(MODULES) -type f \
 
 .PHONY: all default build build-all lint lint-all test run run-all clean help
 
-default: build test run ## Default goal: build, test, and run puzzle modules
+default: lint build test run ## Default goal: build, test, and run puzzle modules
 
 all: build-all run-all ## Build and test all puzzle modules
 
@@ -58,13 +54,14 @@ build: ## Build a specific module: make build MODULE=BreakfastTime
 	@$(LAKE) build $(MODULE)
 
 build-all: ## Build every puzzle module
-	@for m in $(MODULES); do $(LAKE) build $$m; done
+	@$(LAKE) build $(MODULES)
 
 lint: build-all ## Run linter in isolated processes: make lint [MODULE=...]
 	@$(LAKE) check-lint
 ifeq ($(origin MODULE),command line)
 	@LEAN_NUM_THREADS=$(LINT_THREADS) $(LAKE) lint -- $(MODULE)
 else
+	@printf "  %-14s %s\n" "LINT_THREADS" "$(LINT_THREADS)"
 	@for m in $(LINT_MODULES); do \
 		LEAN_NUM_THREADS=$(LINT_THREADS) $(LAKE) lint -- $$m || exit 1; \
 	done
@@ -76,7 +73,7 @@ test: ## Run the LSpec test suite
 	@$(LAKE) test
 
 run: ## Run a specific module executable: make run MODULE=BreakfastTime
-	@$(LAKE) build $(MODULE)Exe && $(LAKE) exe $(MODULE)Exe
+	@$(LAKE) exe $(MODULE)Exe
 
 run-all: ## Run every puzzle executable
 	@for m in $(MODULES); do \
