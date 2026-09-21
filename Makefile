@@ -24,10 +24,13 @@ RM	:= rm -rf
 
 MODULES := BreakfastTime Test
 MODULE ?= $(firstword $(MODULES))
+LINT_THREADS ?= 1
+LINT_MODULES ?= $(shell find $(MODULES:%=%.lean) $(MODULES) -type f \
+	-name '*.lean' 2>/dev/null | sed -e 's/\.lean$$//' -e 's|/|.|g' | sort -u)
 
-.PHONY: all default build build-all lint test run run-all clean help
+.PHONY: all default build build-all lint lint-all test run run-all clean help
 
-default: build-all lint run-all ## Default goal: build, lint, test, and run all puzzle modules
+default: build test run ## Default goal: build, test, and run puzzle modules
 
 all: build-all run-all ## Build and test all puzzle modules
 
@@ -47,9 +50,17 @@ build: ## Build a specific module: make build MODULE=BreakfastTime
 build-all: ## Build every puzzle module
 	@for m in $(MODULES); do $(LAKE) build $$m; done
 
-lint: build-all ## Run the linter
+lint: build-all ## Run linter in isolated processes: make lint [MODULE=...]
 	@$(LAKE) check-lint
-	@$(LAKE) lint
+ifeq ($(origin MODULE),command line)
+	@LEAN_NUM_THREADS=$(LINT_THREADS) $(LAKE) lint -- $(MODULE)
+else
+	@for m in $(LINT_MODULES); do \
+		LEAN_NUM_THREADS=$(LINT_THREADS) $(LAKE) lint -- $$m || exit 1; \
+	done
+endif
+
+lint-all: lint ## Lint all puzzle modules in isolated processes
 
 test: ## Run the LSpec test suite
 	@$(LAKE) test
@@ -58,7 +69,9 @@ run: ## Run a specific module executable: make run MODULE=BreakfastTime
 	@$(LAKE) build $(MODULE)Exe && $(LAKE) exe $(MODULE)Exe
 
 run-all: ## Run every puzzle executable
-	@for m in $(MODULES); do exe="$${m}Exe"; $(LAKE) build "$$exe" && $(LAKE) exe "$$exe"; done
+	@for m in $(MODULES); do \
+		exe="$${m}Exe"; $(LAKE) build "$$exe" && $(LAKE) exe "$$exe"; \
+	done
 
 clean: ## Clean the build artifacts
 	@$(LAKE) clean
